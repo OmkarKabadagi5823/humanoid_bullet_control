@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "humanoid_bullet_control"
+version = "0.0.1"
+dependencies = [
+  "requests",
+  'importlib-metadata; python_version<"3.8"',
+  "human_voxelpose_model"
+]
