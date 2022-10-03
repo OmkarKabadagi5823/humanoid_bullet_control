@@ -4,9 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "humanoid_bullet_control"
+description = "Allows easy control of humanoid.urdf using human poses with pybullet"
+license = {file = "LICENSE"}
+keywords = ["human", "humanoid", "bullet", "pybullet"]
+authors = [
+  {email = "kabadagiomkar@gmail.com", name = "Omkar Kabadagi"}
+]
+maintainers = [
+  {email = "kabadagiomkar@gmail.com", name = "Omkar Kabadagi"}
+]
 version = "0.0.1"
 dependencies = [
   "requests",
   'importlib-metadata; python_version<"3.8"',
-  "human_voxelpose_model"
+  "human_voxelpose_model",
+  "pybullet",
+  "scipy"
 ]
