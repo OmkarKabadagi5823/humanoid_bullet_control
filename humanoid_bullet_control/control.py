@@ -2,58 +2,64 @@ from human_voxelpose_model import HumanPoseModel
 import pybullet as pyb
 from scipy.spatial.transform import Rotation
 from math import pi
+import yaml
 
 import pprint
 
-
 class HumanoidControl():
     def __init__(self, bullet_client_id):
-        self.bid = bullet_client_id
+        self._bid = bullet_client_id
         self.__init_params()
 
     def __init_params(self):
-        self.humanoid_id = None
-        self.hpm = HumanPoseModel()
-        self.joint_set = None
-        self.offset_rot = Rotation.from_euler('xyz', [pi/2, 0, 0])
-        self.multidof_joint_rot = {}
-        self.revolute_joint_angle = {}
+        self._humanoid_id = None
+        self._hpm = HumanPoseModel()
+        self._joint_set = None
+        self._offset_rot = Rotation.from_euler('xyz', [pi/2, 0, 0])
 
-    def set_initial_joints(self, joint_set):
-        self.joint_set = joint_set
-        self.hpm.update(self.joint_set)
+    def load_config(self, config_file):
+        with open(config_file, 'r') as stream:
+            self._config = yaml.load(stream, Loader=yaml.SafeLoader)
+
+        self._joint_control_params = self._config['bullet_sim_hw_interface']['controllers_list']
 
     def load_model(self, model_file):
-        self.humanoid_id = pyb.loadURDF(
+        self._humanoid_id = pyb.loadURDF(
             model_file,
-            basePosition=self.joint_set[0],
-            baseOrientation=(self.hpm.rot['w|r']*self.offset_rot).as_quat(),
+            basePosition=self._joint_set[0],
+            baseOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
             globalScaling=0.2,
             flags=pyb.URDF_USE_INERTIA_FROM_FILE,
-            physicsClientId=self.bid
+            physicsClientId=self._bid
         )
 
-        self.constraint_id = pyb.createConstraint(
-            self.humanoid_id, 
+        self._constraint_id = pyb.createConstraint(
+            self._humanoid_id, 
             -1, -1, -1, 
             pyb.JOINT_FIXED, 
             [0, 0, 0], 
             [0, 0, 0], 
             [0, 0, 1],
-            physicsClientId=self.bid
+            physicsClientId=self._bid
         )
 
         pyb.changeConstraint(
-            self.constraint_id, 
-            self.joint_set[0],
-            jointChildFrameOrientation=(self.hpm.rot['w|r']*self.offset_rot).as_quat(),
+            self._constraint_id, 
+            self._joint_set[0],
+            jointChildFrameOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
             maxForce=500,
-            physicsClientId=self.bid
+            physicsClientId=self._bid
         )
 
+        self.__setup_controllers()
+
+    def set_initial_joints(self, joint_set):
+        self._joint_set = joint_set
+        self._hpm.update(self._joint_set)
+
     def get_model_info(self):
-        for joint_idx in range(pyb.getNumJoints(self.humanoid_id, physicsClientId=self.bid)):
-            joint_info = pyb.getJointInfo(self.humanoid_id, joint_idx, physicsClientId=self.bid)
+        for joint_idx in range(pyb.getNumJoints(self._humanoid_id, physicsClientId=self._bid)):
+            joint_info = pyb.getJointInfo(self._humanoid_id, joint_idx, physicsClientId=self._bid)
             joint_info_list = list(joint_info[0:5])
             joint_info_list.extend(list(joint_info[12:14]))
 
@@ -67,58 +73,97 @@ class HumanoidControl():
             pprint.pprint(joint_info_list)
 
     def update(self, joint_set):
-        self.joint_set = joint_set
+        self._joint_set = joint_set
         self.__update()
 
-    def __update_joint_pos_maps(self):
-        self.multidof_joint_rot = {
-            1: self.__transform_axes(self.hpm.rot['r|0']),
-            2: self.__transform_axes(self.hpm.rot['0|8']),
-            3: self.__transform_axes(self.hpm.rot['0|9']),
-            6: self.__transform_axes(self.hpm.rot['0|12']),
-            9: self.__transform_axes(self.hpm.rot['r|1']),
-            11: self.__transform_axes(self.hpm.rot['r|4'])
-        }
+    def __setup_controllers(self):
+        self._multidof_joint_names = []
+        self._multidof_joint_indices = []
+        self._multidof_forces = []
+        self._multidof_position_gains = []
+        self._multidof_velocity_gains = []
+        self._multidof_max_velocities = []
 
-        self.revolute_joint_angle = {
-            4: self.hpm.rot['9|10'],
-            7: self.hpm.rot['12|13'],
-            10: self.hpm.rot['1|2'],
-            13: self.hpm.rot['4|5']
-        }
+        self._singledof_joint_names = []
+        self._singledof_joint_indices = []
+        self._singledof_forces = []
+        self._singledof_position_gains = []
+        self._singledof_velocity_gains = []
+        self._singledof_max_velocities = []
+
+        for joint_idx in range(pyb.getNumJoints(self._humanoid_id, physicsClientId=self._bid)):
+            joint_info = pyb.getJointInfo(self._humanoid_id, joint_idx, physicsClientId=self._bid)
+            joint_name = joint_info[1].decode('ascii')
+            
+            # skip ankle as it is not supported
+            if 'ankle' in joint_name:
+                continue
+
+            if joint_info[2] == pyb.JOINT_SPHERICAL:
+                self._multidof_joint_names.append(joint_name)
+                self._multidof_joint_indices.append(joint_info[0])
+                self._multidof_forces.append(self._joint_control_params[joint_name]['force'])
+                self._multidof_position_gains.append(self._joint_control_params[joint_name]['position_gain'])
+                self._multidof_velocity_gains.append(self._joint_control_params[joint_name]['velocity_gain'])
+                self._multidof_max_velocities.append(self._joint_control_params[joint_name]['max_velocity'])
+            elif joint_info[2] == pyb.JOINT_REVOLUTE:
+                self._singledof_joint_names.append(joint_name)
+                self._singledof_joint_indices.append(joint_info[0])
+                self._singledof_forces.append(self._joint_control_params[joint_name]['force'])
+                self._singledof_position_gains.append(self._joint_control_params[joint_name]['position_gain'])
+                self._singledof_velocity_gains.append(self._joint_control_params[joint_name]['velocity_gain'])
+                self._singledof_max_velocities.append(self._joint_control_params[joint_name]['max_velocity'])
+
+    def __update_joint_pos_maps(self):
+        self._multidof_joint_rots = [
+            self.__transform_axes(self._hpm.rot['r|0']).as_quat(),     # 1
+            self.__transform_axes(self._hpm.rot['0|8']).as_quat(),     # 2
+            self.__transform_axes(self._hpm.rot['0|9']).as_quat(),     # 3
+            self.__transform_axes(self._hpm.rot['0|12']).as_quat(),    # 6
+            self.__transform_axes(self._hpm.rot['r|1']).as_quat(),     # 9
+            self.__transform_axes(self._hpm.rot['r|4']).as_quat()      # 12
+        ]
+
+        self._singledof_joint_rots = [
+            self._hpm.rot['9|10'],   # 4
+            self._hpm.rot['12|13'],  # 7
+            self._hpm.rot['1|2'],    # 10
+            self._hpm.rot['4|5']     # 13
+        ]
 
     def __update_multidof(self):
-        for (joint_idx, rot) in self.multidof_joint_rot.items():
-            pyb.setJointMotorControlMultiDof(
-                self.humanoid_id,
-                joint_idx,
-                pyb.POSITION_CONTROL,
-                targetPosition=rot.as_quat(),
-                targetVelocity=[0, 0, 0],
-                force=[500, 500, 500],
-                physicsClientId=self.bid
-            )
+        pyb.setJointMotorControlMultiDofArray(
+            self._humanoid_id,
+            self._multidof_joint_indices,
+            pyb.POSITION_CONTROL,
+            targetPositions=self._multidof_joint_rots,
+            forces=self._multidof_forces,
+            positionGains=self._multidof_position_gains,
+            velocityGains=self._multidof_velocity_gains,
+            physicsClientId=self._bid
+        )
 
     def __update_singledof(self):
-        for (joint_idx, angle) in self.revolute_joint_angle.items():
-            pyb.setJointMotorControl2(
-                self.humanoid_id,
-                joint_idx,
-                pyb.POSITION_CONTROL,
-                targetPosition=angle,
-                force=500,
-                physicsClientId=self.bid
-            )
+        pyb.setJointMotorControlArray(
+            self._humanoid_id,
+            self._singledof_joint_indices,
+            pyb.POSITION_CONTROL,
+            targetPositions=self._singledof_joint_rots,
+            forces=self._singledof_forces,
+            positionGains=self._singledof_position_gains,
+            velocityGains=self._singledof_velocity_gains,
+            physicsClientId=self._bid
+        )
 
     def __update(self):
-        self.hpm.update(self.joint_set)
+        self._hpm.update(self._joint_set)
 
         pyb.changeConstraint(
-            self.constraint_id, 
-            self.joint_set[0],
-            jointChildFrameOrientation=(self.hpm.rot['w|r']*self.offset_rot).as_quat(),
+            self._constraint_id, 
+            self._joint_set[0],
+            jointChildFrameOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
             maxForce=500,
-            physicsClientId=self.bid
+            physicsClientId=self._bid
         )
 
         self.__update_joint_pos_maps()
