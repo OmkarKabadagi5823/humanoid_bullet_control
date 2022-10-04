@@ -21,3 +21,6 @@ dependencies = [
   "pybullet",
   "scipy"
 ]
+
+[tool.setuptools]
+packages = ["humanoid_bullet_control"]
