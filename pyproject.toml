@@ -13,7 +13,7 @@ authors = [
 maintainers = [
   {email = "kabadagiomkar@gmail.com", name = "Omkar Kabadagi"}
 ]
-version = "0.0.1"
+version = "1.0.0"
 dependencies = [
   "requests",
   'importlib-metadata; python_version<"3.8"',
