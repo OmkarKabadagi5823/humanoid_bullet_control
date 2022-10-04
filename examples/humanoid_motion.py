@@ -42,7 +42,7 @@ def parse_args():
     
     parser.add_argument(
         '--config',
-        metavar='config_filepath',
+        metavar='config_file',
         type=str,
         required=True,
         help='Path to the config file'
