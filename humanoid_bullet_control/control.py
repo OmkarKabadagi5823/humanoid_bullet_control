@@ -14,7 +14,7 @@ class HumanoidControl():
     def __init_params(self):
         self._humanoid_id = None
         self._hpm = HumanPoseModel()
-        self._joint_set = None
+        self._joint_position_set = None
         self._offset_rot = Rotation.from_euler('xyz', [pi/2, 0, 0])
 
     def load_config(self, config_file):
@@ -23,10 +23,13 @@ class HumanoidControl():
 
         self._joint_control_params = self._config['bullet_sim_hw_interface']['controllers_list']
 
-    def load_model(self, model_file):
+    def load_model(self, model_file, initial_position_set):
+        self._joint_position_set = initial_position_set
+        self._hpm.update(self._joint_position_set)
+
         self._humanoid_id = pyb.loadURDF(
             model_file,
-            basePosition=self._joint_set[0],
+            basePosition=self._joint_position_set[0],
             baseOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
             globalScaling=0.2,
             flags=pyb.URDF_USE_INERTIA_FROM_FILE,
@@ -45,17 +48,13 @@ class HumanoidControl():
 
         pyb.changeConstraint(
             self._constraint_id, 
-            self._joint_set[0],
+            self._joint_position_set[0],
             jointChildFrameOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
             maxForce=500,
             physicsClientId=self._bid
         )
 
         self.__setup_controllers()
-
-    def set_initial_joints(self, joint_set):
-        self._joint_set = joint_set
-        self._hpm.update(self._joint_set)
 
     def get_model_info(self):
         for joint_idx in range(pyb.getNumJoints(self._humanoid_id, physicsClientId=self._bid)):
@@ -73,7 +72,7 @@ class HumanoidControl():
             pprint.pprint(joint_info_list)
 
     def update(self, joint_set):
-        self._joint_set = joint_set
+        self._joint_position_set = joint_set
         self.__update()
 
     def __setup_controllers(self):
@@ -156,11 +155,11 @@ class HumanoidControl():
         )
 
     def __update(self):
-        self._hpm.update(self._joint_set)
+        self._hpm.update(self._joint_position_set)
 
         pyb.changeConstraint(
             self._constraint_id, 
-            self._joint_set[0],
+            self._joint_position_set[0],
             jointChildFrameOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
             maxForce=500,
             physicsClientId=self._bid
