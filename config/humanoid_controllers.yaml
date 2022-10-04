@@ -1,0 +1,99 @@
+hardware_interface:
+  joints:
+    - root
+    - chest
+    - neck
+    - right_shoulder
+    - right_elbow
+    - right_wrist
+    - left_shoulder
+    - left_elbow
+    - left_wrist
+    - right_hip
+    - right_knee
+    - right_ankle
+    - left_hip
+    - left_knee
+    - left_ankle
+  sim_control_mode: 0  # currently only POSITION_CONTROL supported, options = [0=POSITION_CONTROL, 1=VELOCITY_CONTROL, 2=TORQUE_CONTROL]
+bullet_sim_hw_interface:
+  controllers_list:
+    root:
+      type: FIXED
+    chest:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    neck:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    right_shoulder:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    right_elbow:
+      type: REVOLUTE
+      force: 500
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    right_wrist:
+      type: FIXED
+    left_shoulder:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    left_elbow:
+      type: REVOLUTE
+      force: 500
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    left_wrist:
+      type: FIXED
+    right_hip:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    right_knee:
+      type: REVOLUTE
+      force: 500
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    right_ankle:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    left_hip:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    left_knee:
+      type: REVOLUTE
+      force: 500
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+    left_ankle:
+      type: SPHERICAL
+      force: [500, 500, 500]
+      position_gain: 0.1
+      velocity_gain: 1.0
+      max_velocity: 1.0 # meters/second
+      
