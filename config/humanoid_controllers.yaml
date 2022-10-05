@@ -23,25 +23,25 @@ bullet_sim_hw_interface:
     chest:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     neck:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     right_shoulder:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     right_elbow:
       type: REVOLUTE
       force: 500
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     right_wrist:
@@ -49,13 +49,13 @@ bullet_sim_hw_interface:
     left_shoulder:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     left_elbow:
       type: REVOLUTE
       force: 500
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     left_wrist:
@@ -63,37 +63,37 @@ bullet_sim_hw_interface:
     right_hip:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     right_knee:
       type: REVOLUTE
       force: 500
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     right_ankle:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     left_hip:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     left_knee:
       type: REVOLUTE
       force: 500
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
     left_ankle:
       type: SPHERICAL
       force: [500, 500, 500]
-      position_gain: 0.1
+      position_gain: 0.4
       velocity_gain: 1.0
       max_velocity: 1.0 # meters/second
       
