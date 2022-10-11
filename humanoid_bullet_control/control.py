@@ -7,8 +7,9 @@ import yaml
 import pprint
 
 class HumanoidControl():
-    def __init__(self, bullet_client_id):
+    def __init__(self, bullet_client_id, scaling=0.2):
         self._bid = bullet_client_id
+        self._scale = scaling
         self.__init_params()
 
     def __init_params(self):
@@ -31,7 +32,7 @@ class HumanoidControl():
             model_file,
             basePosition=self._joint_position_set[0],
             baseOrientation=(self._hpm.rot['w|r']*self._offset_rot).as_quat(),
-            globalScaling=0.2,
+            globalScaling=self._scale,
             flags=pyb.URDF_USE_INERTIA_FROM_FILE,
             physicsClientId=self._bid
         )
